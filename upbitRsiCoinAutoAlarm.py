@@ -2,7 +2,7 @@ import time
 import pyupbit
 import requests
 
-myToken = ""
+myToken = "yourSlackToken"
 
 
 #슬랙 메세지 보내기
