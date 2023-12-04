@@ -33,23 +33,19 @@ def get_current_price(ticker):
         return df['close'].iloc[0]
 
 # 볼린저 밴드 상단 도달 여부 확인 함수
-def is_above_bollinger_band(ticker, interval='minute3', ma=20, sigma=2):
-    df = pyupbit.get_ohlcv(ticker, interval=interval, count=ma)
+def is_above_bollinger_band(df, ma=20, sigma=2):
     close_prices = df['close']
     ma = close_prices.rolling(window=20).mean()
     std = close_prices.rolling(window=20).std()
     upper_band = ma + (std * sigma)
-    # print("상단 가격: " + str(upper_band.iloc[-1]))
     return close_prices.iloc[-1] >= upper_band.iloc[-1]
   
 # 볼린저 밴드 하단 도달 여부 확인 함수
-def is_below_bollinger_band(ticker, interval='minute3', ma=20, sigma=2):
-    df = pyupbit.get_ohlcv(ticker, interval = interval, count = ma)
+def is_below_bollinger_band(df, ma=20, sigma=2):
     close_prices = df['close']
     ma = close_prices.rolling(window=20).mean()
     std = close_prices.rolling(window=20).std()
     lower_band = ma - (std * sigma)
-    # print("하단 가격: " + str(lower_band.iloc[-1]))
     return close_prices.iloc[-1] <= lower_band.iloc[-1]
 
 # 이동 평균선 기간 설정
@@ -85,8 +81,8 @@ while True:
             print(ticker)
             print("종목명 : " + str(ticker))
 
-            # 3분간격 정보 가져오기
-            df = pyupbit.get_ohlcv(ticker, interval="minute3", count=long_window+15)
+            # 15분간격 정보 가져오기
+            df = pyupbit.get_ohlcv(ticker, interval="minute15", count=long_window)
 
             #현재가 조회
             current_price = get_current_price(ticker) 
@@ -101,7 +97,7 @@ while True:
             current_MA_long = (df['MA_long'][-1] * (long_window-1) + current_price) / (long_window)
 
             # 볼린저 밴드 하단 도달 여부 확인
-            if is_below_bollinger_band(ticker):
+            if is_below_bollinger_band(df):
                 post_message(myToken, "#cryptoautotrade", f"볼린저 밴드 하단 도달: {ticker}")
                 print("볼린저 밴드 하단 도달")
 
@@ -114,7 +110,7 @@ while True:
                     print("이평선 도달")
 
                 # 볼린저 밴드 상단 도달 여부 확인
-                if is_above_bollinger_band(ticker):
+                if is_above_bollinger_band(df):
                     post_message(myToken, "#cryptoautotrade", f"볼린저 밴드 상단 도달: {ticker}")
                     print("볼린저 밴드 상단 도달")
             print()
